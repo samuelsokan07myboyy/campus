@@ -1,59 +1,160 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
+import { AppProvider } from '@/context/AppContext';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    ...FontAwesome.font,
-  });
-
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+// Inner component so it can read the theme context
+function AppShell() {
+  const { theme } = useTheme();
+  // On dark backgrounds → status bar icons should be light (white)
+  // On light backgrounds → status bar icons should be dark (black)
+  const statusBarStyle = theme.dark ? 'light' : 'dark';
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch((error) => {
+      console.warn('Unable to lock the app to portrait:', error);
+    });
+  }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <GestureHandlerRootView style={styles.container}>
       <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        {/* Auth */}
+        <Stack.Screen name="welcome" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+
+        {/* Main App */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+
+        {/* Post Creation */}
+        <Stack.Screen
+          name="post"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+
+        {/* Study Room */}
+        <Stack.Screen
+          name="study-room"
+          options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'fade' }}
+        />
+
+        {/* Create Vibe */}
+        <Stack.Screen
+          name="create-vibe"
+          options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+
+        <Stack.Screen
+          name="create-event"
+          options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+
+        <Stack.Screen
+          name="event-detail"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+
+        {/* Create Study Room */}
+        <Stack.Screen
+          name="create-study-room"
+          options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+
+        {/* Chat */}
+        <Stack.Screen
+          name="chat"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+
+        {/* Notifications */}
+        <Stack.Screen
+          name="notifications"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+
+        {/* Settings */}
+        <Stack.Screen
+          name="settings"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+
+        {/* User Profile */}
+        <Stack.Screen
+          name="user-profile"
+          options={{ headerShown: false, presentation: 'card', animation: 'slide_from_right' }}
+        />
+
+        {/* Followers and Following */}
+        <Stack.Screen
+          name="follow-list"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+
+        {/* Post Detail */}
+        <Stack.Screen
+          name="post-detail"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+
+        <Stack.Screen
+          name="post-comments"
+          options={{
+            headerShown: false,
+            presentation: 'transparentModal',
+            animation: 'slide_from_bottom',
+            contentStyle: { backgroundColor: 'transparent' },
+            gestureEnabled: false,
+          }}
+        />
+
+        {/* Edit Profile */}
+        <Stack.Screen
+          name="edit-profile"
+          options={{ headerShown: false, presentation: 'modal', animation: 'slide_from_bottom' }}
+        />
+
+        {/* Tools */}
+        <Stack.Screen
+          name="tools/gpa-calculator"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="tools/ai-solver"
+          options={{ headerShown: false, presentation: 'fullScreenModal', animation: 'slide_from_bottom' }}
+        />
+
+        {/* Careers */}
+        <Stack.Screen
+          name="careers/job-detail"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
+        <Stack.Screen
+          name="careers/saved"
+          options={{ headerShown: false, animation: 'slide_from_right' }}
+        />
       </Stack>
+
+      {/* Status bar style adapts to the active theme automatically */}
+      <StatusBar style={statusBarStyle} />
+    </GestureHandlerRootView>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AppProvider>
+        <AppShell />
+      </AppProvider>
     </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
